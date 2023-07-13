@@ -1,6 +1,7 @@
 package com.example.api.service;
 
 import com.example.api.domain.Coupon;
+import com.example.api.repository.CouponCountRepository;
 import com.example.api.repository.CouponRepository;
 import org.springframework.stereotype.Service;
 
@@ -9,12 +10,16 @@ public class ApplyService {
 
     private final CouponRepository couponRepository;
 
-    public ApplyService(CouponRepository couponRepository){
+    private final CouponCountRepository couponCountRepository;
+
+    public ApplyService(CouponRepository couponRepository, CouponCountRepository couponCountRepository){
         this.couponRepository = couponRepository;
+        this.couponCountRepository = couponCountRepository;
     }
 
     public void apply(Long userId){
-        long count = couponRepository.count();
+        // redis -> single thread -> race condition 해결 가능
+        long count = couponCountRepository.increment(); // 쿠폰 개수 -> 핵심키 -> 정합성만 유지
 
         if (count > 100){
             return;
